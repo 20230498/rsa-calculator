@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RSA Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;500&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:         #fafaf8;
+  --surface:    #ffffff;
+  --border:     #e2e2dc;
+  --border-mid: #c8c8c0;
+  --accent:     #2a5fa5;
+  --text:       #1a1a18;
+  --muted:      #888880;
+  --danger:     #c0392b;
+  --warn:       #b7770d;
+  --info:       #1a6a8a;
+  --success:    #1a7a3a;
+  --mono:       'Source Code Pro', monospace;
+  --serif:      'Lora', Georgia, serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--serif);
+  font-size: 15px;
+  line-height: 1.65;
+  min-height: 100vh;
+}
+.wrap {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 52px 24px 100px;
+}
+header {
+  margin-bottom: 44px;
+  padding-bottom: 24px;
+  border-bottom: 2px solid var(--text);
+}
+header h1 {
+  font-family: var(--serif);
+  font-size: clamp(1.6rem, 4vw, 2.2rem);
+  font-weight: 600;
+  color: var(--text);
+}
+header .sub {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 12px;
+  margin-top: 6px;
+}
+.encoding-note {
+  display: inline-block;
+  margin-top: 12px;
+  background: #f0f0eb;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 6px 14px;
+}
+/* TABS */
+.tabs {
+  display: flex;
+  margin-bottom: 28px;
+  border-bottom: 1px solid var(--border-mid);
+  flex-wrap: wrap;
+}
+.tab-btn {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--muted);
+  font-family: var(--serif);
+  font-size: 14px;
+  padding: 10px 18px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  margin-bottom: -1px;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+/* CARDS */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  margin-bottom: 20px;
+}
+.card-head {
+  background: #f5f5f2;
+  border-bottom: 1px solid var(--border);
+  padding: 11px 18px;
+}
+.card-title {
+  font-family: var(--serif);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+.card-body { padding: 20px 22px 24px; }
+/* FIELDS */
+.field-group { margin-bottom: 16px; }
+.field-group label {
+  display: block;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.field-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+.field-row .field-group { flex: 1; min-width: 120px; }
+input[type="text"], input[type="number"], textarea {
+  width: 100%;
+  background: #fafaf8;
+  border: 1px solid var(--border-mid);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 13.5px;
+  padding: 8px 12px;
+  outline: none;
+  transition: border-color 0.15s;
+  resize: vertical;
+}
+input[type="text"]:focus, input[type="number"]:focus, textarea:focus {
+  border-color: var(--accent);
+}
+textarea { min-height: 72px; }
+/* BUTTONS */
+.btn {
+  background: var(--accent);
+  border: none;
+  color: #fff;
+  font-family: var(--serif);
+  font-size: 14px;
+  padding: 9px 22px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn:hover { background: #1e4d8a; }
+/* OUTPUT */
+.output-box {
+  background: #f7f7f4;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--border-mid);
+  padding: 12px 15px;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.75;
+  white-space: pre-wrap;
+  word-break: break-all;
+  min-height: 40px;
+  color: var(--text);
+}
+.output-box.success { border-left-color: var(--success); color: var(--success); background: #f2faf4; }
+.output-box.warn    { border-left-color: var(--warn);    color: var(--warn);    background: #fdf8f0; }
+.output-box.danger  { border-left-color: var(--danger);  color: var(--danger);  background: #fdf3f2; }
+.output-box.info    { border-left-color: var(--info);    color: var(--info);    background: #f2f7fa; }
+.output-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+  margin-top: 14px;
+}
+.output-label:first-child { margin-top: 0; }
+/* TRACE */
+.trace-line {
+  display: flex;
+  gap: 12px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--mono);
+  font-size: 12.5px;
+  flex-wrap: wrap;
+}
+.trace-line:last-child { border-bottom: none; }
+.trace-key { color: var(--muted); min-width: 200px; flex-shrink: 0; }
+.trace-val { color: var(--text); word-break: break-all; }
+/* ALPHA TABLE */
+.alpha-table {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 10px;
+}
+.alpha-cell {
+  background: #f5f5f2;
+  border: 1px solid var(--border);
+  width: 44px; height: 44px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 2px;
+}
+.alpha-cell .letter { color: var(--accent); font-family: var(--serif); font-size: 15px; font-weight: 600; }
+.alpha-cell .num    { color: var(--muted); font-family: var(--mono); font-size: 11px; }
+hr { border: none; border-top: 1px solid var(--border); margin: 18px 0; }
+.badge {
+  display: inline-block;
+  padding: 1px 7px;
+  font-family: var(--mono);
+  font-size: 11px;
+}
+.badge-ok   { background: #e8f5ec; color: var(--success); }
+.badge-fail { background: #fdecea; color: var(--danger); }
+p.note { color: var(--muted); font-size: 13.5px; margin-bottom: 16px; font-style: italic; }
+@media (max-width: 600px) {
+  .field-row { flex-direction: column; }
+  .btn { width: 100%; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>RSA Calculator</h1>
+  <div class="sub">Number Theory &amp; Cryptography — Textbook Edition</div>
+  <div class="encoding-note">Encoding: A = 00, B = 01, C = 02, … Z = 25 &nbsp;(§4.6.5)</div>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="showTab(event,'keys')">1. Key Setup</button>
+  <button class="tab-btn" onclick="showTab(event,'encrypt')">2. Encrypt</button>
+  <button class="tab-btn" onclick="showTab(event,'decrypt')">3. Decrypt</button>
+  <button class="tab-btn" onclick="showTab(event,'sign')">4. Sign</button>
+  <button class="tab-btn" onclick="showTab(event,'verify')">5. Verify</button>
+  <button class="tab-btn" onclick="showTab(event,'combined')">6. Sign + Encrypt</button>
+  <button class="tab-btn" onclick="showTab(event,'ref')">7. Reference</button>
+</div>
+
+<!-- ═══ 1. KEY SETUP ═══ -->
+<div id="tab-keys" class="tab-panel active">
+
+  <div class="card">
+    <div class="card-head"><div class="card-title">Choose two distinct primes p and q</div></div>
+    <div class="card-body">
+      <p class="note">Pick two distinct prime numbers. n = p·q is the modulus. Small primes work fine for textbook examples.</p>
+      <div class="field-row">
+        <div class="field-group">
+          <label>Prime p</label>
+          <input type="number" id="key-p" min="2">
+        </div>
+        <div class="field-group">
+          <label>Prime q</label>
+          <input type="number" id="key-q" min="2">
+        </div>
+      </div>
+      <button class="btn" onclick="computeKeys()">Compute n and r →</button>
+    </div>
+  </div>
+
+  <div class="card" id="keys-result" style="display:none;">
+    <div class="card-head"><div class="card-title">Modulus n and totient r = φ(n)</div></div>
+    <div class="card-body" id="keys-result-body"></div>
+  </div>
+
+  <div class="card" id="keys-ed-card" style="display:none;">
+    <div class="card-head"><div class="card-title">Choose public exponent e</div></div>
+    <div class="card-body">
+      <p class="note">e must satisfy 1 &lt; e &lt; r and gcd(e, r) = 1. d is computed automatically as the modular inverse of e mod r.</p>
+      <div class="field-group">
+        <label>Candidates for e (coprime with r)</label>
+        <div class="output-box info" id="e-candidates"></div>
+      </div>
+      <div class="field-group">
+        <label>Your chosen e</label>
+        <input type="number" id="key-e-input">
+      </div>
+      <button class="btn" onclick="applyE()">Set e and compute d →</button>
+      <div id="ed-result" style="margin-top:18px;"></div>
+    </div>
+  </div>
+
+  <div class="card" id="keys-summary" style="display:none;">
+    <div class="card-head"><div class="card-title">Key pair</div></div>
+    <div class="card-body" id="keys-summary-body"></div>
+  </div>
+
+</div>
+
+<!-- ═══ 2. ENCRYPT ═══ -->
+<div id="tab-encrypt" class="tab-panel">
+  <div class="card">
+    <div class="card-head"><div class="card-title">Encrypt a message — public key (n, e)</div></div>
+    <div class="card-body">
+      <p class="note">Each letter is encoded as a 2-digit number (A=00 … Z=25), then: c = m<sup>e</sup> mod n.</p>
+      <div class="card" style="background:#f7f7f4;margin-bottom:18px;">
+        <div class="card-body" style="padding:12px 16px;">
+          <div class="output-label" style="margin-top:0;">Loaded public key</div>
+          <div id="enc-key-display" style="font-family:var(--mono);font-size:13px;color:var(--muted);">No key loaded — go to 1. Key Setup first.</div>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field-group">
+          <label>n</label>
+          <input type="number" id="enc-n">
+        </div>
+        <div class="field-group">
+          <label>e</label>
+          <input type="number" id="enc-e">
+        </div>
+      </div>
+      <div class="field-group">
+        <label>Plaintext message (letters only)</label>
+        <input type="text" id="enc-msg">
+      </div>
+      <button class="btn" onclick="encryptMsg()">Encrypt →</button>
+      <div id="enc-output" style="margin-top:22px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 3. DECRYPT ═══ -->
+<div id="tab-decrypt" class="tab-panel">
+  <div class="card">
+    <div class="card-head"><div class="card-title">Decrypt a message — private key (n, d)</div></div>
+    <div class="card-body">
+      <p class="note">Each cipher block is decrypted: m = c<sup>d</sup> mod n, then decoded back to letters.</p>
+      <div class="card" style="background:#f7f7f4;margin-bottom:18px;">
+        <div class="card-body" style="padding:12px 16px;">
+          <div class="output-label" style="margin-top:0;">Loaded private key</div>
+          <div id="dec-key-display" style="font-family:var(--mono);font-size:13px;color:var(--muted);">No key loaded — go to 1. Key Setup first.</div>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field-group">
+          <label>n</label>
+          <input type="number" id="dec-n">
+        </div>
+        <div class="field-group">
+          <label>d</label>
+          <input type="number" id="dec-d">
+        </div>
+      </div>
+      <div class="field-group">
+        <label>Cipher blocks (space-separated)</label>
+        <textarea id="dec-cipher"></textarea>
+      </div>
+      <button class="btn" onclick="decryptMsg()">Decrypt →</button>
+      <div id="dec-output" style="margin-top:22px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 4. SIGN ═══ -->
+<div id="tab-sign" class="tab-panel">
+  <div class="card">
+    <div class="card-head"><div class="card-title">Sign a message — sender's private key (n, d)</div></div>
+    <div class="card-body">
+      <p class="note">The sender signs using their private key: S = m<sup>d</sup> mod n. The recipient verifies with the sender's public key.</p>
+      <div class="field-row">
+        <div class="field-group">
+          <label>n</label>
+          <input type="number" id="sign-n">
+        </div>
+        <div class="field-group">
+          <label>d</label>
+          <input type="number" id="sign-d">
+        </div>
+      </div>
+      <div class="field-group">
+        <label>Message (letters only)</label>
+        <input type="text" id="sign-msg">
+      </div>
+      <button class="btn" onclick="signMsg()">Sign →</button>
+      <div id="sign-output" style="margin-top:22px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 5. VERIFY ═══ -->
+<div id="tab-verify" class="tab-panel">
+  <div class="card">
+    <div class="card-head"><div class="card-title">Verify a signature — sender's public key (n, e)</div></div>
+    <div class="card-body">
+      <p class="note">The recipient recovers: m = S<sup>e</sup> mod n. If it matches the original message, the signature is valid.</p>
+      <div class="field-row">
+        <div class="field-group">
+          <label>n</label>
+          <input type="number" id="ver-n">
+        </div>
+        <div class="field-group">
+          <label>e</label>
+          <input type="number" id="ver-e">
+        </div>
+      </div>
+      <div class="field-group">
+        <label>Original message (letters only)</label>
+        <input type="text" id="ver-msg">
+      </div>
+      <div class="field-group">
+        <label>Signature blocks (space-separated)</label>
+        <textarea id="ver-sig"></textarea>
+      </div>
+      <button class="btn" onclick="verifyMsg()">Verify →</button>
+      <div id="ver-output" style="margin-top:22px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 6. SIGN + ENCRYPT ═══ -->
+<div id="tab-combined" class="tab-panel">
+  <div class="card">
+    <div class="card-head"><div class="card-title">Signed + encrypted message — sender A</div></div>
+    <div class="card-body">
+      <p class="note">
+        Step 1 — Sign with A's private key: &nbsp;S = m<sup>d<sub>A</sub></sup> mod n<sub>A</sub><br>
+        Step 2 — Encrypt with B's public key: &nbsp;c = S<sup>e<sub>B</sub></sup> mod n<sub>B</sub><br><br>
+        <span style="font-size:13px;">Full formula: m = D<sub>(n<sub>A</sub>, e<sub>A</sub>)</sub> ∘ D<sub>d<sub>B</sub></sub> ∘ E<sub>(n<sub>B</sub>, e<sub>B</sub>)</sub> ∘ F<sub>d<sub>A</sub></sub>(m)</span>
+      </p>
+      <hr>
+      <p style="font-family:var(--mono);font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:14px;">Sender A's keys</p>
+      <div class="field-row">
+        <div class="field-group">
+          <label>n<sub>A</sub></label>
+          <input type="number" id="comb-nA">
+        </div>
+        <div class="field-group">
+          <label>d<sub>A</sub></label>
+          <input type="number" id="comb-dA">
+        </div>
+      </div>
+      <p style="font-family:var(--mono);font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:14px;">Receiver B's keys</p>
+      <div class="field-row">
+        <div class="field-group">
+          <label>n<sub>B</sub></label>
+          <input type="number" id="comb-nB">
+        </div>
+        <div class="field-group">
+          <label>e<sub>B</sub></label>
+          <input type="number" id="comb-eB">
+        </div>
+      </div>
+      <div class="field-group">
+        <label>Message (letters only)</label>
+        <input type="text" id="comb-msg">
+      </div>
+      <button class="btn" onclick="signEncrypt()">Sign then encrypt →</button>
+      <div id="comb-send-output" style="margin-top:22px;"></div>
+    </div>
+  </div>
+
+  <div class="card" id="comb-recv-card" style="display:none;">
+    <div class="card-head"><div class="card-title">Decrypt + verify — receiver B</div></div>
+    <div class="card-body">
+      <p class="note">Step 3 — Decrypt with B's private key. &nbsp; Step 4 — Verify with A's public key.</p>
+      <div class="field-row">
+        <div class="field-group">
+          <label>n<sub>B</sub></label>
+          <input type="number" id="recv-nB">
+        </div>
+        <div class="field-group">
+          <label>d<sub>B</sub></label>
+          <input type="number" id="recv-dB">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field-group">
+          <label>n<sub>A</sub></label>
+          <input type="number" id="recv-nA">
+        </div>
+        <div class="field-group">
+          <label>e<sub>A</sub></label>
+          <input type="number" id="recv-eA">
+        </div>
+      </div>
+      <div class="field-group">
+        <label>Received ciphertext blocks</label>
+        <textarea id="recv-cipher"></textarea>
+      </div>
+      <button class="btn" onclick="decryptVerify()">Decrypt then verify →</button>
+      <div id="recv-output" style="margin-top:22px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 7. REFERENCE ═══ -->
+<div id="tab-ref" class="tab-panel">
+  <div class="card">
+    <div class="card-head"><div class="card-title">Encoding table — A = 00 … Z = 25</div></div>
+    <div class="card-body">
+      <div class="alpha-table" id="alpha-table"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head"><div class="card-title">Algorithm summary</div></div>
+    <div class="card-body" style="font-size:13.5px;line-height:2;color:var(--muted);">
+      <span style="color:var(--text);font-weight:600;">Key generation</span><br>
+      1. Choose two distinct primes p, q.<br>
+      2. Compute n = p·q &nbsp;and&nbsp; r = φ(n) = (p−1)(q−1).<br>
+      3. Choose e: &nbsp;1 &lt; e &lt; r, &nbsp;gcd(e, r) = 1.<br>
+      4. Compute d = e<sup>−1</sup> mod r &nbsp;so that e·d ≡ 1 (mod r).<br>
+      5. Public key: (n, e) &nbsp;·&nbsp; Private key: (n, d).
+      <hr>
+      <span style="color:var(--text);font-weight:600;">Encryption / Decryption</span><br>
+      Encode each letter: A=00, B=01, … Z=25. One letter per block.<br>
+      Encrypt: &nbsp;c = m<sup>e</sup> mod n<br>
+      Decrypt: &nbsp;m = c<sup>d</sup> mod n
+      <hr>
+      <span style="color:var(--text);font-weight:600;">Digital signature</span><br>
+      Sign: &nbsp;&nbsp;&nbsp;S = m<sup>d</sup> mod n &nbsp;(sender's private key)<br>
+      Verify: &nbsp;m = S<sup>e</sup> mod n &nbsp;(sender's public key)<br>
+      Valid if recovered m matches the original message.
+    </div>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<script>
+// ── STATE ──────────────────────────────────────────────────
+var RSA = { p:0, q:0, n:0, r:0, e:0, d:0, ready:false };
+
+// ── MATH ───────────────────────────────────────────────────
+function isPrime(n) {
+  if (n < 2) return false;
+  if (n === 2) return true;
+  if (n % 2 === 0) return false;
+  for (var i = 3; i <= Math.sqrt(n); i += 2) if (n % i === 0) return false;
+  return true;
+}
+function gcd(a, b) {
+  a = Math.abs(a); b = Math.abs(b);
+  while (b !== 0) { var t = b; b = a % b; a = t; }
+  return a;
+}
+function extGcd(a, b) {
+  if (b === 0) return { g: a, x: 1, y: 0 };
+  var r = extGcd(b, a % b);
+  return { g: r.g, x: r.y, y: r.x - Math.floor(a / b) * r.y };
+}
+function modInverse(a, m) {
+  var res = extGcd(((a % m) + m) % m, m);
+  if (res.g !== 1) return null;
+  return ((res.x % m) + m) % m;
+}
+function powerMod(base, exp, mod) {
+  if (mod === 1) return 0;
+  var result = 1;
+  base = base % mod;
+  while (exp > 0) {
+    if (exp % 2 === 1) result = (result * base) % mod;
+    exp = Math.floor(exp / 2);
+    base = (base * base) % mod;
+  }
+  return result;
+}
+
+// ── ENCODING ───────────────────────────────────────────────
+function textToBlocks(text) {
+  text = text.toUpperCase().replace(/[^A-Z]/g, '');
+  var blocks = [];
+  for (var i = 0; i < text.length; i++) blocks.push(text.charCodeAt(i) - 65);
+  return blocks;
+}
+function numToLetter(v) {
+  if (v < 0 || v > 25) return '?';
+  return String.fromCharCode(65 + v);
+}
+function pad2(v) { return v < 10 ? '0' + v : '' + v; }
+
+// ── TABS ───────────────────────────────────────────────────
+function showTab(e, id) {
+  document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+  document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+  document.getElementById('tab-' + id).classList.add('active');
+  e.target.classList.add('active');
+  if (id === 'ref') buildAlphaTable();
+  syncKeyDisplays();
+}
+
+// ── HELPERS ────────────────────────────────────────────────
+function tr(k, v) {
+  return '<div class="trace-line"><div class="trace-key">' + k + '</div><div class="trace-val">' + v + '</div></div>';
+}
+function out(cls, msg) {
+  return '<div class="output-box ' + cls + '">' + msg + '</div>';
+}
+function lbl(text) {
+  return '<div class="output-label">' + text + '</div>';
+}
+function kbox(title, lines) {
+  var h = '<div style="flex:1;min-width:180px;background:#f0f4f9;border:1px solid var(--border);padding:14px 18px;">';
+  h += '<div style="font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">' + title + '</div>';
+  lines.forEach(function(l) { h += '<div style="font-family:var(--mono);color:var(--accent);font-size:15px;">' + l + '</div>'; });
+  return h + '</div>';
+}
+function setVal(id, v) { var el = document.getElementById(id); if (el) el.value = v; }
+function setText(id, t) { var el = document.getElementById(id); if (el) el.textContent = t; }
+
+// ── KEY SETUP ──────────────────────────────────────────────
+function computeKeys() {
+  var p = parseInt(document.getElementById('key-p').value);
+  var q = parseInt(document.getElementById('key-q').value);
+  var card = document.getElementById('keys-result');
+  var body = document.getElementById('keys-result-body');
+
+  if (!p || !q)    { body.innerHTML = out('danger', 'Please enter both p and q.'); card.style.display='block'; return; }
+  if (!isPrime(p)) { body.innerHTML = out('danger', 'p = ' + p + ' is not prime.'); card.style.display='block'; return; }
+  if (!isPrime(q)) { body.innerHTML = out('danger', 'q = ' + q + ' is not prime.'); card.style.display='block'; return; }
+  if (p === q)     { body.innerHTML = out('danger', 'p and q must be distinct.'); card.style.display='block'; return; }
+
+  var n = p * q;
+  var r = (p - 1) * (q - 1);
+  RSA.p = p; RSA.q = q; RSA.n = n; RSA.r = r;
+
+  body.innerHTML =
+    tr('p', p + ' <span style="color:var(--success)">✓ prime</span>') +
+    tr('q', q + ' <span style="color:var(--success)">✓ prime</span>') +
+    tr('n = p · q', p + ' × ' + q + ' = <strong>' + n + '</strong>') +
+    tr('r = φ(n) = (p−1)(q−1)', '(' + (p-1) + ')(' + (q-1) + ') = <strong>' + r + '</strong>');
+  card.style.display = 'block';
+
+  var cands = [];
+  for (var e = 2; e < r && cands.length < 25; e++) if (gcd(e, r) === 1) cands.push(e);
+  document.getElementById('e-candidates').textContent = cands.join('   ');
+  document.getElementById('keys-ed-card').style.display = 'block';
+  document.getElementById('ed-result').innerHTML = '';
+  document.getElementById('keys-summary').style.display = 'none';
+  RSA.ready = false;
+}
+
+function applyE() {
+  var e = parseInt(document.getElementById('key-e-input').value);
+  var r = RSA.r;
+  var div = document.getElementById('ed-result');
+
+  if (!e || !r)         { div.innerHTML = out('danger', 'Please compute n and r first, then enter e.'); return; }
+  if (e <= 1 || e >= r) { div.innerHTML = out('danger', 'e must satisfy 1 < e < r = ' + r + '.'); return; }
+  if (gcd(e, r) !== 1)  { div.innerHTML = out('danger', 'gcd(e, r) = ' + gcd(e,r) + ' ≠ 1. Choose a different e.'); return; }
+
+  var d = modInverse(e, r);
+  if (!d) { div.innerHTML = out('danger', 'Cannot compute modular inverse. Try a different e.'); return; }
+  RSA.e = e; RSA.d = d; RSA.ready = true;
+
+  div.innerHTML =
+    tr('e', e) +
+    tr('d = e⁻¹ mod r', d + ' &nbsp;<span style="color:var(--muted);font-size:11px;">(e·d = ' + (e*d) + ')</span>') +
+    tr('e·d mod r', '<span style="color:var(--success)">' + ((e*d) % r) + ' ✓ (must equal 1)</span>');
+
+  var sb = document.getElementById('keys-summary-body');
+  sb.innerHTML = '<div style="display:flex;gap:16px;flex-wrap:wrap;">' +
+    kbox('Public key', ['n = ' + RSA.n, 'e = ' + RSA.e]) +
+    kbox('Private key', ['n = ' + RSA.n, 'd = ' + RSA.d]) +
+    '</div><p style="color:var(--muted);font-size:13px;margin-top:14px;font-style:italic;">These values have been auto-filled into all other tabs.</p>';
+  document.getElementById('keys-summary').style.display = 'block';
+  syncKeyDisplays();
+}
+
+function syncKeyDisplays() {
+  var pub = RSA.ready ? 'n = ' + RSA.n + ',   e = ' + RSA.e : 'No key loaded — go to 1. Key Setup first.';
+  var prv = RSA.ready ? 'n = ' + RSA.n + ',   d = ' + RSA.d : 'No key loaded — go to 1. Key Setup first.';
+  setText('enc-key-display', pub);
+  setText('dec-key-display', prv);
+  if (RSA.ready) {
+    setVal('enc-n', RSA.n); setVal('enc-e', RSA.e);
+    setVal('dec-n', RSA.n); setVal('dec-d', RSA.d);
+    setVal('sign-n', RSA.n); setVal('sign-d', RSA.d);
+    setVal('ver-n', RSA.n); setVal('ver-e', RSA.e);
+  }
+}
+
+// ── ENCRYPT ────────────────────────────────────────────────
+function encryptMsg() {
+  var n = parseInt(document.getElementById('enc-n').value);
+  var e = parseInt(document.getElementById('enc-e').value);
+  var msg = document.getElementById('enc-msg').value.toUpperCase().replace(/[^A-Z]/g,'');
+  var div = document.getElementById('enc-output');
+
+  if (!n || !e || !msg) { div.innerHTML = out('danger', 'Fill in n, e, and a message.'); return; }
+  if (n <= 25) { div.innerHTML = out('danger', 'n = ' + n + ' is too small. n must be > 25.'); return; }
+
+  var blocks = textToBlocks(msg);
+  var ciphers = blocks.map(function(b) { return powerMod(b, e, n); });
+
+  var html = lbl('Step-by-step — c = m<sup>e</sup> mod n');
+  for (var i = 0; i < blocks.length; i++) {
+    html += tr(msg[i] + ' → ' + pad2(blocks[i]), pad2(blocks[i]) + '<sup>' + e + '</sup> mod ' + n + ' = <strong>' + ciphers[i] + '</strong>');
+  }
+  html += lbl('Numeric plaintext (m)');
+  html += out('info', blocks.map(pad2).join('  '));
+  html += lbl('Ciphertext (c)');
+  html += out('success', ciphers.join('  '));
+  div.innerHTML = html;
+}
+
+// ── DECRYPT ────────────────────────────────────────────────
+function decryptMsg() {
+  var n = parseInt(document.getElementById('dec-n').value);
+  var d = parseInt(document.getElementById('dec-d').value);
+  var raw = document.getElementById('dec-cipher').value.trim();
+  var div = document.getElementById('dec-output');
+
+  if (!n || !d || !raw) { div.innerHTML = out('danger', 'Fill in n, d, and cipher blocks.'); return; }
+
+  var cb = raw.split(/\s+/).map(Number).filter(function(x){ return !isNaN(x); });
+  if (!cb.length) { div.innerHTML = out('danger', 'No valid cipher blocks found.'); return; }
+
+  var dec = cb.map(function(c) { return powerMod(c, d, n); });
+  var letters = dec.map(function(v) { return v >= 0 && v <= 25 ? numToLetter(v) : '?'; });
+
+  var html = lbl('Step-by-step — m = c<sup>d</sup> mod n');
+  for (var i = 0; i < cb.length; i++) {
+    html += tr('c = ' + cb[i], cb[i] + '<sup>' + d + '</sup> mod ' + n + ' = ' + pad2(dec[i]) + ' → <strong>' + letters[i] + '</strong>');
+  }
+  html += lbl('Decrypted message');
+  html += out('success', letters.join(''));
+  div.innerHTML = html;
+}
+
+// ── SIGN ───────────────────────────────────────────────────
+function signMsg() {
+  var n = parseInt(document.getElementById('sign-n').value);
+  var d = parseInt(document.getElementById('sign-d').value);
+  var msg = document.getElementById('sign-msg').value.toUpperCase().replace(/[^A-Z]/g,'');
+  var div = document.getElementById('sign-output');
+
+  if (!n || !d || !msg) { div.innerHTML = out('danger', 'Fill in n, d, and a message.'); return; }
+  if (n <= 25) { div.innerHTML = out('danger', 'n must be > 25.'); return; }
+
+  var blocks = textToBlocks(msg);
+  var sigs = blocks.map(function(b) { return powerMod(b, d, n); });
+
+  var html = lbl('Signing — S = m<sup>d</sup> mod n');
+  for (var i = 0; i < blocks.length; i++) {
+    html += tr(msg[i] + ' → ' + pad2(blocks[i]), pad2(blocks[i]) + '<sup>' + d + '</sup> mod ' + n + ' = <strong>' + sigs[i] + '</strong>');
+  }
+  html += lbl('Signature (S)');
+  html += out('success', sigs.join('  '));
+  html += '<div style="margin-top:14px;padding:12px 16px;background:#f7f7f4;border:1px solid var(--border);font-size:13px;color:var(--muted);font-style:italic;">';
+  html += 'Send message <strong style="color:var(--text)">' + msg + '</strong> together with signature <strong style="color:var(--text)">' + sigs.join(' ') + '</strong> to the recipient.';
+  html += '</div>';
+  div.innerHTML = html;
+}
+
+// ── VERIFY ─────────────────────────────────────────────────
+function verifyMsg() {
+  var n = parseInt(document.getElementById('ver-n').value);
+  var e = parseInt(document.getElementById('ver-e').value);
+  var msg = document.getElementById('ver-msg').value.toUpperCase().replace(/[^A-Z]/g,'');
+  var raw = document.getElementById('ver-sig').value.trim();
+  var div = document.getElementById('ver-output');
+
+  if (!n || !e || !msg || !raw) { div.innerHTML = out('danger', 'Fill in all fields.'); return; }
+
+  var sb = raw.split(/\s+/).map(Number).filter(function(x){ return !isNaN(x); });
+  var mb = textToBlocks(msg);
+
+  if (sb.length !== mb.length) {
+    div.innerHTML = out('warn', 'Signature block count (' + sb.length + ') does not match message length (' + mb.length + ').');
+    return;
+  }
+
+  var rec = sb.map(function(s) { return powerMod(s, e, n); });
+  var valid = rec.every(function(v, i) { return v === mb[i]; });
+
+  var html = lbl('Verification — m = S<sup>e</sup> mod n');
+  for (var i = 0; i < sb.length; i++) {
+    var match = rec[i] === mb[i];
+    html += tr('S = ' + sb[i],
+      sb[i] + '<sup>' + e + '</sup> mod ' + n + ' = ' + pad2(rec[i]) + ' → ' + numToLetter(rec[i]) +
+      ' &nbsp;<span class="badge ' + (match ? 'badge-ok' : 'badge-fail') + '">' + (match ? '✓' : '✗') + '</span>');
+  }
+  html += lbl('Recovered message');
+  html += out('info', rec.map(function(v){ return numToLetter(v); }).join(''));
+  html += lbl('Result');
+  html += valid
+    ? out('success', '✓  Signature valid — message was signed by the owner of private key d.')
+    : out('danger',  '✗  Signature invalid — the signature does not match the message.');
+  div.innerHTML = html;
+}
+
+// ── SIGN + ENCRYPT ─────────────────────────────────────────
+function signEncrypt() {
+  var nA = parseInt(document.getElementById('comb-nA').value);
+  var dA = parseInt(document.getElementById('comb-dA').value);
+  var nB = parseInt(document.getElementById('comb-nB').value);
+  var eB = parseInt(document.getElementById('comb-eB').value);
+  var msg = document.getElementById('comb-msg').value.toUpperCase().replace(/[^A-Z]/g,'');
+  var div = document.getElementById('comb-send-output');
+
+  if (!nA || !dA || !nB || !eB || !msg) { div.innerHTML = out('danger', 'Fill in all fields.'); return; }
+  if (nA <= 25) { div.innerHTML = out('danger', 'n_A must be > 25.'); return; }
+  if (nB <= 25) { div.innerHTML = out('danger', 'n_B must be > 25.'); return; }
+
+  var blocks = textToBlocks(msg);
+  var signed = blocks.map(function(b) { return powerMod(b, dA, nA); });
+
+  for (var i = 0; i < signed.length; i++) {
+    if (signed[i] >= nB) {
+      div.innerHTML = out('danger', 'Signed block ' + signed[i] + ' ≥ n_B = ' + nB + '. Try larger primes for B.');
+      return;
+    }
+  }
+
+  var cipher = signed.map(function(s) { return powerMod(s, eB, nB); });
+
+  var html = lbl('Step 1 — Sign with A\'s private key: S = m<sup>d<sub>A</sub></sup> mod n<sub>A</sub>');
+  for (var i = 0; i < blocks.length; i++) {
+    html += tr(msg[i] + ' → ' + pad2(blocks[i]), pad2(blocks[i]) + '<sup>' + dA + '</sup> mod ' + nA + ' = <strong>' + signed[i] + '</strong>');
+  }
+  html += lbl('Signed blocks (unencrypted)');
+  html += out('warn', signed.join('  '));
+
+  html += lbl('Step 2 — Encrypt with B\'s public key: c = S<sup>e<sub>B</sub></sup> mod n<sub>B</sub>');
+  for (var i = 0; i < signed.length; i++) {
+    html += tr('S = ' + signed[i], signed[i] + '<sup>' + eB + '</sup> mod ' + nB + ' = <strong>' + cipher[i] + '</strong>');
+  }
+  html += lbl('Ciphertext — signed + encrypted');
+  html += out('success', cipher.join('  '));
+
+  div.innerHTML = html;
+
+  setVal('recv-nB', nB);
+  setVal('recv-nA', nA);
+  document.getElementById('recv-cipher').value = cipher.join(' ');
+  document.getElementById('comb-recv-card').style.display = 'block';
+}
+
+function decryptVerify() {
+  var nB = parseInt(document.getElementById('recv-nB').value);
+  var dB = parseInt(document.getElementById('recv-dB').value);
+  var nA = parseInt(document.getElementById('recv-nA').value);
+  var eA = parseInt(document.getElementById('recv-eA').value);
+  var raw = document.getElementById('recv-cipher').value.trim();
+  var div = document.getElementById('recv-output');
+
+  if (!nB || !dB || !nA || !eA || !raw) { div.innerHTML = out('danger', 'Fill in all fields.'); return; }
+
+  var cb = raw.split(/\s+/).map(Number).filter(function(x){ return !isNaN(x); });
+  if (!cb.length) { div.innerHTML = out('danger', 'No valid cipher blocks.'); return; }
+
+  var decrypted = cb.map(function(c) { return powerMod(c, dB, nB); });
+  var recovered = decrypted.map(function(s) { return powerMod(s, eA, nA); });
+  var letters = recovered.map(function(v) { return v >= 0 && v <= 25 ? numToLetter(v) : '?'; });
+
+  var html = lbl('Step 3 — Decrypt with B\'s private key: S = c<sup>d<sub>B</sub></sup> mod n<sub>B</sub>');
+  for (var i = 0; i < cb.length; i++) {
+    html += tr('c = ' + cb[i], cb[i] + '<sup>' + dB + '</sup> mod ' + nB + ' = <strong>' + decrypted[i] + '</strong>');
+  }
+  html += lbl('Decrypted (signed) blocks');
+  html += out('warn', decrypted.join('  '));
+
+  html += lbl('Step 4 — Verify with A\'s public key: m = S<sup>e<sub>A</sub></sup> mod n<sub>A</sub>');
+  for (var i = 0; i < decrypted.length; i++) {
+    html += tr('S = ' + decrypted[i], decrypted[i] + '<sup>' + eA + '</sup> mod ' + nA + ' = ' + pad2(recovered[i]) + ' → <strong>' + letters[i] + '</strong>');
+  }
+  html += lbl('Recovered plaintext');
+  html += out('success', letters.join(''));
+  html += '<div style="margin-top:14px;padding:12px 16px;background:#f7f7f4;border:1px solid var(--border);font-size:13px;color:var(--muted);font-style:italic;">';
+  html += 'Message successfully decrypted (confidential) and authenticated (confirmed from A).';
+  html += '</div>';
+  div.innerHTML = html;
+}
+
+// ── REFERENCE ──────────────────────────────────────────────
+function buildAlphaTable() {
+  var t = document.getElementById('alpha-table');
+  if (t.children.length > 0) return;
+  for (var i = 0; i < 26; i++) {
+    var c = document.createElement('div');
+    c.className = 'alpha-cell';
+    c.innerHTML = '<span class="letter">' + String.fromCharCode(65+i) + '</span><span class="num">' + pad2(i) + '</span>';
+    t.appendChild(c);
+  }
+}
+
+buildAlphaTable();
+</script>
+</body>
+</html>
